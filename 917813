@@ -1,0 +1,162 @@
+local Translations = {
+    ["GG HUB"] = "朝霞汉化",
+    ["Main"] = "主界面",
+    ["Player"] = "玩家",
+    ["ESP"] = "透视",
+    ["Finder"] = "查找器",
+    ["Misc"] = "杂项",
+    ["Settings"] = "设置",
+    ["Speed Boost"] = "速度提升",
+    ["SpeedScript"] = "速度脚本",
+    ["Infinite Jump"] = "无限跳跃",
+    ["AntiRagdoll"] = "防布娃娃",
+    ["AimBot (LaserCape/WebSlinger)"] = "自瞄",
+    ["Brainrot Finder Settings"] = "脑红查找器",
+    ["Price Range"] = "价格范围",
+    ["Discord"] = "Q群",
+    ["Start Finder"] = "开始查找",
+    ["Stop Finder"] = "停止查找",
+    ["AutoJoiner"] = "自动加入",
+    ["AutoJoiner Premium"] = "自动加入高级版",
+    ["Tiny Body"] = "小体型",
+    ["Desync & Floor"] = "防击打与地板",
+    ["Plot Time Notifier"] = "地块时间通知器",
+    ["Private Server Gens"] = "私服生成",
+    ["Anti FPS Dev"] = "防FPS开发者",
+    ["Configuration Settings"] = "配置设置",
+    ["Save Config"] = "保存配置",
+    ["Load Config"] = "加载配置",
+    ["Auto Load Config"] = "自动加载配置",
+    ["Reset Config"] = "重置配置",
+    ["Best Brainrot ESP"] = "最佳脑红透视",
+    ["Player ESP"] = "玩家透视",
+    ["Plot Timer ESP"] = "地块计时器透视",
+    ["GC HUB | AUTOJOINER"] = "自动加入器",
+    ["Clear Logs"] = "清除日志",
+    ["Live Logs: OFF"] = "实时日志：关闭",
+    ["AutoJoin: OFF"] = "自动加入：关闭",
+    ["Scanning... 2/3"] = "扫描中... 2/3",
+    ["Private Server Generation"] = "私人服务器生成",
+    ["CG HUB"] = "CG HUB",
+    ["Create Private Server"] = "创建私人服务器",
+    ["Your Access Code:"] = "您的访问代码:",
+    ["Generate a code first..."] = "先生成一个代码...",
+    ["Join Server with Code:"] = "使用代码加入服务器：",
+    ["Paste access code..."] = "粘贴访问代码...",
+    ["Join"] = "加入",
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    
+    if Translations[text] then
+        return Translations[text]
+    end
+    
+    for en, cn in pairs(Translations) do
+        if text:find(en) then
+            return text:gsub(en, cn)
+        end
+    end
+    
+    return text
+end
+
+local function setupTranslationEngine()
+    local success, err = pcall(function()
+        local oldIndex = getrawmetatable(game).__newindex
+        setreadonly(getrawmetatable(game), false)
+        
+        getrawmetatable(game).__newindex = newcclosure(function(t, k, v)
+            if (t:IsA("TextLabel") or t:IsA("TextButton") or t:IsA("TextBox")) and k == "Text" then
+                v = translateText(tostring(v))
+            end
+            return oldIndex(t, k, v)
+        end)
+        
+        setreadonly(getrawmetatable(game), true)
+    end)
+    
+    if not success then
+        warn("元表劫持失败:", err)
+       
+        local translated = {}
+        local function scanAndTranslate()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+                if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                    pcall(function()
+                        local text = gui.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                gui.Text = translatedText
+                                translated[gui] = true
+                            end
+                        end
+                    end)
+                end
+            end
+            
+            local player = game:GetService("Players").LocalPlayer
+            if player and player:FindFirstChild("PlayerGui") then
+                for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+                    if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                        pcall(function()
+                            local text = gui.Text
+                            if text and text ~= "" then
+                                local translatedText = translateText(text)
+                                if translatedText ~= text then
+                                    gui.Text = translatedText
+                                    translated[gui] = true
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        local function setupDescendantListener(parent)
+            parent.DescendantAdded:Connect(function(descendant)
+                if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                    task.wait(0.1)
+                    pcall(function()
+                        local text = descendant.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                descendant.Text = translatedText
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+        
+        pcall(setupDescendantListener, game:GetService("CoreGui"))
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            pcall(setupDescendantListener, player.PlayerGui)
+        end
+        
+        while true do
+            scanAndTranslate()
+            task.wait(3)
+        end
+    end
+end
+
+task.wait(2)
+
+setupTranslationEngine()
+
+local success, err = pcall(function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Farx11122/GGHUB_FREE/refs/heads/main/gghubLoader_games"))()
+
+
+
+end)
+
+if not success then
+    warn("加载失败:", err)
+end
