@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡密验证系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            color: white;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 28px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            margin-bottom: 30px;
+            opacity: 0.8;
+            font-size: 16px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        input:focus {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff8a00, #e52e71);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid rgba(46, 204, 113, 0.5);
+            display: block;
+        }
+        
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.5);
+            display: block;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .info {
+            margin-top: 30px;
+            font-size: 13px;
+            opacity: 0.7;
+            line-height: 1.5;
+        }
+        
+        .card-list {
+            margin-top: 20px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .card-list h3 {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .card-list ul {
+            list-style-type: none;
+            padding-left: 15px;
+        }
+        
+        .card-list li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .card-list li:before {
+            content: "•";
+            color: #fdbb2d;
+            position: absolute;
+            left: 0;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+        
+        .script-output {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 15px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff8a00, #e52e71);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>卡密验证系统</h1>
+        <p class="subtitle">请输入有效的卡密以加载脚本</p>
+        
+        <div class="input-group">
+            <label for="cardKey">卡密</label>
+            <input type="text" id="cardKey" placeholder="请输入您的卡密...">
+        </div>
+        
+        <button id="submitBtn">验证并加载</button>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div id="message" class="message"></div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>正在验证卡密，请稍候...</p>
+        </div>
+        
+        <div class="script-output" id="scriptOutput">
+            <p>> 脚本输出将显示在这里...</p>
+        </div>
+        
+        <div class="card-list">
+            <h3>测试卡密</h3>
+            <ul>
+                <li>VIP-2023-ABCD-1234</li>
+                <li>PREMIUM-5678-EFGH</li>
+                <li>TEST-KEY-9999</li>
+            </ul>
+        </div>
+        
+        <div class="info">
+            <p>验证成功后，系统将自动加载脚本：</p>
+            <p style="font-family: monospace; margin-top: 5px; word-break: break-all;">
+                loadstring(game:HttpGet("https://pastefy.app/LlkfAKqJ/raw"))()
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>卡密系统 &copy; 2023 | 仅供演示使用</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cardKeyInput = document.getElementById('cardKey');
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('message');
+            const loadingDiv = document.getElementById('loading');
+            const scriptOutput = document.getElementById('scriptOutput');
+            const progressBar = document.getElementById('progressBar');
+            const progress = document.getElementById('progress');
+            
+            const validKeys = [
+                "VIP-2023-ABCD-1234",
+                "PREMIUM-5678-EFGH",
+                "TEST-KEY-9999"
+            ];
+            
+            submitBtn.addEventListener('click', validateCardKey);
+            
+            cardKeyInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    validateCardKey();
+                }
+            });
+            
+            function validateCardKey() {
+                const cardKey = cardKeyInput.value.trim();
+                
+                if (!cardKey) {
+                    showMessage("请输入卡密", "error");
+                    return;
+                }
+                
+                loadingDiv.style.display = 'block';
+                messageDiv.style.display = 'none';
+                scriptOutput.style.display = 'none';
+                submitBtn.disabled = true;
+                
+                setTimeout(function() {
+                    if (validKeys.includes(cardKey)) {
+                        showMessage("卡密验证成功！正在加载脚本...", "success");
+                        loadingDiv.style.display = 'none';
+                        progressBar.style.display = 'block';
+                        
+                        simulateScriptLoading();
+                    } else {
+                        showMessage("卡密无效，请检查后重试。", "error");
+                        loadingDiv.style.display = 'none';
+                        submitBtn.disabled = false;
+                    }
+                }, 1500);
+            }
+            
+            function simulateScriptLoading() {
+                let progressValue = 0;
+                const interval = setInterval(function() {
+                    progressValue += 5;
+                    progress.style.width = progressValue + '%';
+                    
+                    if (progressValue >= 100) {
+                        clearInterval(interval);
+                        setTimeout(function() {
+                            progressBar.style.display = 'none';
+                            scriptOutput.style.display = 'block';
+                            scriptOutput.innerHTML = `
+                                > 脚本加载成功！<br>
+                                > 执行命令：loadstring(game:HttpGet("https://pastefy.app/LlkfAKqJ/raw"))()<br>
+                                > 脚本已启动，功能就绪
+                            `;
+                            submitBtn.disabled = false;
+                        }, 800);
+                    }
+                }, 100);
+            }
+            
+            function showMessage(text, type) {
+                messageDiv.textContent = text;
+                messageDiv.className = 'message ' + type;
+                messageDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
